@@ -10,7 +10,7 @@ termux-setup-storage
 
 # Mudando espelho de repositório
 echo "[*] Alterando espelho de repositórios..."
-termux-change-mirror
+termux-change-repo
 
 # Lista de pacotes a serem instalados
 packages=("x11-repo" "root-repo" "tur-repo" "python3" "git" "wget" "nmap" "netcat-openbsd" "termux-x11-nightly" "termux-api" "android-tools" "openssh" "htop" "zsh" "nodejs" "curl")
@@ -29,7 +29,6 @@ for package in "${packages[@]}"; do
     fi
 done
 
-
 # Instalando Oh My Zsh
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
     echo "[*] Instalando Oh My Zsh..."
@@ -37,6 +36,8 @@ if [ ! -d "$HOME/.oh-my-zsh" ]; then
 else
     echo "[*] Oh My Zsh já está instalado."
 fi
+
+zsh <<'EOF'
 
 # Instalando plugins do Oh My Zsh
 echo "[*] Instalando plugins do Oh My Zsh..."
@@ -59,8 +60,16 @@ else
     sed -i 's/plugins=(/plugins=(git zsh-autosuggestions zsh-syntax-highlighting zsh-completions /' "$HOME/.zshrc"
 fi
 
-# Aplicando mudanças no Zsh
-echo "[*] Aplicando mudanças no Zsh..."
-source "$HOME/.zshrc"
+# Executando comandos no Zsh para finalizar a configuração
+echo "[*] Finalizando configuração no Zsh..."
 
-echo "[*] Configuração concluída!"
+# Recarregar configuração do Zsh
+source ~/.zshrc
+
+# Teste de comando ou qualquer outra configuração específica para Zsh
+echo "Configuração no Zsh concluída!"
+EOF
+
+# Mensagem final
+echo "[*] Configuração geral concluída!"
+exit 0
