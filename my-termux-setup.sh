@@ -4,6 +4,14 @@ cd
 clear
 echo "Iniciando configuração do Termux..."
 
+# Configurando permissões de armazenamento
+echo "[*] Configurando permissões de armazenamento..."
+termux-setup-storage
+
+# Mudando espelho de repositório
+echo "[*] Alterando espelho de repositórios..."
+termux-change-mirror
+
 # Lista de pacotes a serem instalados
 packages=("x11-repo" "root-repo" "tur-repo" "python3" "git" "wget" "nmap" "netcat-openbsd" "termux-x11-nightly" "termux-api" "android-tools" "openssh" "htop" "zsh" "nodejs" "curl")
 
@@ -21,13 +29,6 @@ for package in "${packages[@]}"; do
     fi
 done
 
-# Configurando permissões de armazenamento
-echo "[*] Configurando permissões de armazenamento..."
-termux-setup-storage
-
-# Mudando espelho de repositório
-echo "[*] Alterando espelho de repositórios..."
-termux-change-mirror
 
 # Instalando Oh My Zsh
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
