@@ -1,6 +1,6 @@
 #!/bin/bash
 # Script para configurar o Termux com ferramentas essenciais e Oh My Zsh
- cd
+cd
 clear
 echo "Iniciando configuração do Termux..."
 
