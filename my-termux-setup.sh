@@ -16,11 +16,12 @@ termux-change-repo
 clear
 
 # Lista de pacotes a serem instalados
-packages=("x11-repo" "root-repo" "tur-repo" "python3" "git" "wget" "nmap" "netcat-openbsd" "termux-x11-nightly" "termux-api" "android-tools" "openssh" "htop" "zsh" "nodejs" "curl")
+packages=("tmux" "x11-repo" "root-repo" "tur-repo" "python3" "git" "wget" "nmap" "netcat-openbsd" "termux-x11-nightly" "termux-api" "android-tools" "openssh" "htop" "zsh" "nodejs" "curl")
 
 # Atualizando repositórios e pacotes
 echo "[*] Atualizando pacotes..."
 pkg update && pkg upgrade -y
+clear
 
 # Instalando pacotes
 for package in "${packages[@]}"; do
@@ -41,7 +42,7 @@ else
     echo "[*] Oh My Zsh já está instalado."
 fi
 
-zsh OMZ-plugins-setup.sh
+zsh $PWD/OMZ-plugins-setup.sh
 
 # Mensagem final
 echo "[*] Configuração geral concluída!"
