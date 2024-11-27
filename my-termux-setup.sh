@@ -5,7 +5,7 @@ clear
 echo "Iniciando configuração do Termux..."
 
 # Lista de pacotes a serem instalados
-packages=("x11-repo" "root-repo" "tur-repo" "python3" "git" "wget" "nmap" "ncat" "termux-x11-nightly" "termux-api" "adb" "openssh" "btop" "zsh" "nodejs" "curl")
+packages=("x11-repo" "root-repo" "tur-repo" "python3" "git" "wget" "nmap" "netcat-openbsd" "termux-x11-nightly" "termux-api" "android-tools" "openssh" "btop" "zsh" "nodejs" "curl")
 
 # Atualizando repositórios e pacotes
 echo "[*] Atualizando pacotes..."
