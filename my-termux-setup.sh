@@ -2,7 +2,7 @@
 # Script para configurar o Termux com ferramentas essenciais e Oh My Zsh
 cd
 clear
-echo "Iniciando configuração do Termux..."
+echo "[*] Iniciando configuração do Termux..."
 
 # Configurando permissões de armazenamento
 echo "[*] Configurando permissões de armazenamento..."
@@ -42,6 +42,7 @@ else
     echo "[*] Oh My Zsh já está instalado."
 fi
 
+# script em zsh para adicionar os plugins
 zsh $PWD/termux-scripts/OMZ-plugins-setup.sh
 
 # Mensagem final
