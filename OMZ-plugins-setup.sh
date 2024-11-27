@@ -1,5 +1,6 @@
 #!/bin/zsh
 # Script para instalar plugins do Oh My Zsh
+clear
 echo "[*] Instalando plugins do Oh My Zsh..."
 
 # Lista de plugins a serem instalados
