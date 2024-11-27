@@ -42,7 +42,7 @@ else
     echo "[*] Oh My Zsh já está instalado."
 fi
 
-zsh $PWD/OMZ-plugins-setup.sh
+zsh $PWD/termux-scripts/OMZ-plugins-setup.sh
 
 # Mensagem final
 echo "[*] Configuração geral concluída!"
