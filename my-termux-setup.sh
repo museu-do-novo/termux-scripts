@@ -37,38 +37,7 @@ else
     echo "[*] Oh My Zsh já está instalado."
 fi
 
-zsh <<'EOF'
-
-# Instalando plugins do Oh My Zsh
-echo "[*] Instalando plugins do Oh My Zsh..."
-plugins=("zsh-autosuggestions" "zsh-syntax-highlighting" "zsh-completions")
-
-for plugin in "${plugins[@]}"; do
-    if [ ! -d "$ZSH/custom/plugins/$plugin" ]; then
-        echo "[*] Instalando plugin: $plugin..."
-        git clone "https://github.com/zsh-users/$plugin.git" "$ZSH/custom/plugins/$plugin"
-    else
-        echo "[*] Plugin $plugin já está instalado."
-    fi
-done
-
-# Atualizando .zshrc para ativar plugins
-echo "[*] Configurando .zshrc..."
-if ! grep -q "plugins=(" "$HOME/.zshrc"; then
-    echo "plugins=(git zsh-autosuggestions zsh-syntax-highlighting zsh-completions)" >> "$HOME/.zshrc"
-else
-    sed -i 's/plugins=(/plugins=(git zsh-autosuggestions zsh-syntax-highlighting zsh-completions /' "$HOME/.zshrc"
-fi
-
-# Executando comandos no Zsh para finalizar a configuração
-echo "[*] Finalizando configuração no Zsh..."
-
-# Recarregar configuração do Zsh
-source ~/.zshrc
-
-# Teste de comando ou qualquer outra configuração específica para Zsh
-echo "Configuração no Zsh concluída!"
-EOF
+zsh OMZ-plugins-setup.sh
 
 # Mensagem final
 echo "[*] Configuração geral concluída!"
