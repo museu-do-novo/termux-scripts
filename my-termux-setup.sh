@@ -4,8 +4,8 @@ cd
 clear
 echo "[*] Iniciando configuração do Termux..."
 
-termuxapiurl=""
-
+termuxapiurl="https://f-droid.org/repo/com.termux.api_51.apk"
+apiapkfile=$TMPDIR/termux-api.apk
 
 # Configurando permissões de armazenamento
 echo "[*] Configurando permissões de armazenamento..."
@@ -36,6 +36,16 @@ for package in "${packages[@]}"; do
     fi
     clear
 done
+
+echo "[*] Download: termux-api.apk..."
+wget -o "$apiapkfile" "$termuxapiurl" 
+
+termux-toast "[*] Instalando apk: termux-api"
+sleep 2
+termux-toast "[!] Abra o instalador!"
+sleep 2
+termux-open "$apiapkfile"
+
 
 # Instalando Oh My Zsh
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
