@@ -4,9 +4,6 @@ cd
 clear
 echo "[*] Iniciando configuração do Termux..."
 
-termuxapiurl="https://f-droid.org/repo/com.termux.api_51.apk"
-apiapkfile=$TMPDIR/termux-api.apk
-
 # Configurando permissões de armazenamento
 echo "[*] Configurando permissões de armazenamento..."
 termux-setup-storage
@@ -36,6 +33,15 @@ for package in "${packages[@]}"; do
     fi
     clear
 done
+
+termux-api_url="https://f-droid.org/repo/com.termux.api_51.apk"
+termux-api_apk=$TMPDIR/termux-api.apk
+hackers-keyboard_url="https://f-droid.org/repo/org.pocketworkstation.pckeyboard_1041001.apk"
+hackers-keyboard_apk=$TMPDIR/hackers-keyboard.apk
+
+download_apks=("$termux-api_url" "$hackers-keyboard_url")qq
+install_apks=("$termux-api_apk" "$hackers-keyboard_apk")
+
 
 echo "[*] Download: termux-api.apk..."
 wget -o "$apiapkfile" "$termuxapiurl" 
