@@ -4,6 +4,9 @@ cd
 clear
 echo "[*] Iniciando configuração do Termux..."
 
+termuxapiurl=""
+
+
 # Configurando permissões de armazenamento
 echo "[*] Configurando permissões de armazenamento..."
 termux-setup-storage
@@ -16,7 +19,7 @@ termux-change-repo
 clear
 
 # Lista de pacotes a serem instalados
-packages=("tmux" "x11-repo" "root-repo" "tur-repo" "python3" "git" "wget" "nmap" "netcat-openbsd" "termux-x11-nightly" "termux-api" "android-tools" "openssh" "htop" "zsh" "nodejs" "curl")
+packages=("tmux" "x11-repo" "root-repo" "tur-repo" "python3" "git" "wget" "nmap" "netcat-openbsd" "termux-x11-nightly" "termux-api" "android-tools" "openssh" "htop" "zsh" "nodejs" "curl" "aria2" "axel" "yt-dlp" "ffmpeg")
 
 # Atualizando repositórios e pacotes
 echo "[*] Atualizando pacotes..."
