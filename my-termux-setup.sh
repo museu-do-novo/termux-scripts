@@ -9,9 +9,9 @@ echo "[*] Configurando permissões de armazenamento..."
 termux-setup-storage
 clear
 
-
 # Mudando espelho de repositório
 echo "[*] Alterando espelho de repositórios..."
+sleep 2
 termux-change-repo
 clear
 
@@ -34,24 +34,29 @@ for package in "${packages[@]}"; do
     clear
 done
 
-termux-api_url="https://f-droid.org/repo/com.termux.api_51.apk"
-termux-api_apk=$TMPDIR/termux-api.apk
-hackers-keyboard_url="https://f-droid.org/repo/org.pocketworkstation.pckeyboard_1041001.apk"
-hackers-keyboard_apk=$TMPDIR/hackers-keyboard.apk
+# URLs e arquivos APK para download e instalação
+termux_api_url="https://f-droid.org/repo/com.termux.api_51.apk"
+hackers_keyboard_url="https://f-droid.org/repo/org.pocketworkstation.pckeyboard_1041001.apk"
 
-download_apks=("$termux-api_url" "$hackers-keyboard_url")qq
-install_apks=("$termux-api_apk" "$hackers-keyboard_apk")
+# Array de URLs e destinos
+download_urls=("$termux_api_url" "$hackers_keyboard_url")
+apk_files=("$TMPDIR/termux-api.apk" "$TMPDIR/hackers-keyboard.apk")
 
-
-echo "[*] Download: termux-api.apk..."
-wget -o "$apiapkfile" "$termuxapiurl" 
-
-termux-toast "[*] Instalando apk: termux-api"
-sleep 2
-termux-toast "[!] Abra o instalador!"
-sleep 2
-termux-open "$apiapkfile"
-
+# Baixando e instalando APKs
+for i in "${!download_urls[@]}"; do
+    echo "[*] Baixando: ${download_urls[i]}..."
+    wget -qO "${apk_files[i]}" "${download_urls[i]}"
+    if [[ $? -ne 0 ]]; then
+        echo "[!] Erro ao baixar o APK: ${download_urls[i]}"
+        exit 1
+    fi
+    termux-toast "[*] Instalando APK: ${apk_files[i]}..."
+    sleep 2
+    termux-open "${apk_files[i]}"
+    sleep 2
+    termux-toast "[!] Abra o instalador para concluir a instalação do APK!"
+    sleep 5
+done
 
 # Instalando Oh My Zsh
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
@@ -62,7 +67,12 @@ else
 fi
 
 # script em zsh para adicionar os plugins
-zsh $PWD/termux-scripts/OMZ-plugins-setup.sh
+if [ -f "$PWD/termux-scripts/OMZ-plugins-setup.sh" ]; then
+    echo "[*] Executando configuração de plugins para Oh My Zsh..."
+    zsh "$PWD/termux-scripts/OMZ-plugins-setup.sh"
+else
+    echo "[!] Script de configuração de plugins não encontrado: OMZ-plugins-setup.sh"
+fi
 
 # Mensagem final
 echo "[*] Configuração geral concluída!"
