@@ -38,22 +38,20 @@ done
 termux_api_url="https://f-droid.org/repo/com.termux.api_51.apk"
 hackers_keyboard_url="https://f-droid.org/repo/org.pocketworkstation.pckeyboard_1041001.apk"
 
-# Array de URLs e destinos
-download_urls=("$termux_api_url" "$hackers_keyboard_url")
-apk_files=("~/storage/downloads/termux-api.apk" "~/storage/downloads/hackers-keyboard.apk")
+termux_api_apk=~/storage/downloads/termux-api.apk 
+hackers_keyboard_apk=~/storage/downloads/hackers-keyboard.apk
 
+
+download_urls=("$termux_api_url" "$hackers_keyboard_url")
+apk_files=("$termux_api_apk" "$hackers_keyboard_apk")
 # Baixando e instalando APKs
 for i in "${!download_urls[@]}"; do
     echo "[*] Baixando: ${download_urls[i]}..."
     wget -O "${apk_files[i]}" "${download_urls[i]}"
     if [[ $? -ne 0 ]]; then
         echo "[!] Erro ao baixar o APK: ${download_urls[i]}"
-        exit 1
     fi
 done
-
-clear
-echo "Aplicativos essenciais salvos na pasta de download"
 
 # Instalando Oh My Zsh
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
