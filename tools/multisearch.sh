@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
 # Configurações globais
-VERSION="3.1"
+VERSION="3.2"
 CONFIG_FILE="$HOME/.config/searchhelper.conf"
 DEFAULT_ENGINE="google"
 
@@ -17,67 +17,69 @@ declare -A SEARCH_ENGINES=(
 )
 
 show_help() {
-    echo "
-📘 Search Helper v$VERSION - Manual Completo
+    echo " 📘 Search Helper v$VERSION - Manual Completo
 
 🌈 USO BÁSICO:
   $0 [OPÇÕES] \"TERMOS DE PESQUISA\"
 
 🔧 OPÇÕES PRINCIPAIS:
-  -e, --engine <nome>    Seleciona mecanismo de pesquisa
-  -m, --multi <e1,e2>    Pesquisa em múltiplos mecanismos
-  -l, --list             Lista mecanismos disponíveis
-  -h, --help             Mostra este manual completo
-  -V, --version          Mostra a versão
+  -e, --engine <nome>  Seleciona mecanismo de pesquisa
+  -m, --multi <e1,e2>  Pesquisa em múltiplos mecanismos
+  -f, --file <arquivo> Carrega pesquisas de um arquivo de texto (uma por linha)
+  -l, --list           Lista mecanismos disponíveis
+  -h, --help           Mostra este manual completo
+  -V, --version        Mostra a versão
 
 🔍 MECANISMOS SUPORTADOS:"
     for engine in "${!SEARCH_ENGINES[@]}"; do
         echo "  - $engine"
     done
-
-    echo "
+    echo "  
 🎯 OPERADORES AVANÇADOS:
   → Operadores Básicos:
-    \"frase exata\"      Pesquisa exata
-    -palavra           Exclui termo
-    OR                 Alternância lógica
-    (parenteses)       Agrupamento lógico
+    \"frase exata\"     Pesquisa exata
+    -palavra          Exclui termo
+    OR                Alternância lógica
+    (parenteses)      Agrupamento lógico
 
   → Filtros Específicos:
-    site:dominio       Limita a um site
-    intitle:termo      Termo no título
-    inurl:termo        Termo na URL
-    intext:termo       Termo no conteúdo
-    filetype:ext       Tipo de arquivo
+    site:dominio      Limita a um site
+    intitle:termo     Termo no título
+    inurl:termo       Termo na URL
+    intext:termo      Termo no conteúdo
+    filetype:ext      Tipo de arquivo
 
   → Filtros Temporais:
-    after:YYYY-MM-DD   Resultados após data
-    before:YYYY-MM-DD  Resultados antes data
+    after:YYYY-MM-DD  Resultados após data
+    before:YYYY-MM-DD Resultados antes data
 
   → Filtros Especiais:
-    related:url        Sites relacionados
-    cache:url          Versão em cache
-    define:termo       Definições
-    map:local          Mapas
+    related:url       Sites relacionados
+    cache:url         Versão em cache
+    define:termo      Definições
+    map:local         Mapas
 
 💡 EXEMPLOS PRÁTICOS:
-  1. Pesquisa técnica:
-     $0 -e google \"intitle:'index of' site:github.com filetype:pdf\"
+1. Pesquisa técnica:
+   $0 -e google \"intitle:'index of' site:github.com filetype:pdf\"
 
-  2. Pesquisa múltipla:
-     $0 -m ddg,bing \"error 404 -wordpress filetype:log\"
+2. Pesquisa múltipla:
+   $0 -m ddg,bing \"error 404 -wordpress filetype:log\"
 
-  3. Pesquisa temporal:
-     $0 -e google \"python vulnerability after:2023-01-01\"
+3. Pesquisa temporal:
+   $0 -e google \"python vulnerability after:2023-01-01\"
 
-  4. Pesquisa avançada:
-     $0 -e youtube \"how to install AND (kali linux OR parrot os)\"
+4. Pesquisa em lote:
+   $0 -e google -f queries.txt
+
+5. Pesquisa avançada:
+   $0 -e youtube \"how to install AND (kali linux OR parrot os)\"
 
 📌 DICAS:
-  - Use aspas para frases exatas
-  - Combine operadores para melhor precisão
-  - Verifique a sintaxe específica de cada mecanismo
-"
+- Use aspas para frases exatas
+- Combine operadores para melhor precisão
+- Use -f para processar grandes listas de pesquisas
+- Verifique a sintaxe específica de cada mecanismo"
     exit 0
 }
 
@@ -88,7 +90,7 @@ load_config() {
 list_engines() {
     echo "🔧 Mecanismos disponíveis:"
     for engine in "${!SEARCH_ENGINES[@]}"; do
-        echo "  - $engine"
+        echo " - $engine"
     done
     exit 0
 }
@@ -121,7 +123,7 @@ validate_engine() {
 parse_arguments() {
     local engines=()
     local query=()
-
+    local input_file=""
     load_config
 
     while [ $# -gt 0 ]; do
@@ -135,6 +137,11 @@ parse_arguments() {
                 [ -z "$2" ] && { echo "❌ Faltando lista de mecanismos"; exit 1; }
                 IFS=',' read -ra multi_engines <<< "$2"
                 engines+=("${multi_engines[@]}")
+                shift 2
+                ;;
+            -f|--file)
+                [ -z "$2" ] && { echo "❌ Faltando nome do arquivo"; exit 1; }
+                input_file="$2"
                 shift 2
                 ;;
             -l|--list)
@@ -160,13 +167,24 @@ parse_arguments() {
     done
 
     [ ${#engines[@]} -eq 0 ] && engines=("$DEFAULT_ENGINE")
-    [ ${#query[@]} -eq 0 ] && { echo "❌ Nenhum termo de pesquisa!"; show_help; exit 1; }
-
+    
     for engine in "${engines[@]}"; do
         validate_engine "$engine"
     done
 
-    process_search "${engines[@]}" "${query[*]}"
+    if [ -n "$input_file" ]; then
+        [ ! -r "$input_file" ] && { echo "❌ Arquivo não encontrado ou sem permissão: $input_file"; exit 1; }
+        echo "📁 Processando arquivo: $input_file"
+        while IFS= read -r line || [ -n "$line" ]; do
+            line=$(echo "$line" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
+            [ -z "$line" ] && continue
+            echo "🔎 Pesquisando: '$line'"
+            process_search "${engines[@]}" "$line"
+        done < "$input_file"
+    else
+        [ ${#query[@]} -eq 0 ] && { echo "❌ Nenhum termo de pesquisa!"; show_help; exit 1; }
+        process_search "${engines[@]}" "${query[*]}"
+    fi
 }
 
 process_search() {
@@ -176,9 +194,8 @@ process_search() {
 
     for engine in "${engines[@]}"; do
         local url="${SEARCH_ENGINES[$engine]//\{query\}/$encoded_query}"
-        echo "🔍 Pesquisando no $engine: $query"
+        echo "🌐 Abrindo ($engine): $query"
         am start -a android.intent.action.VIEW -d "$url" > /dev/null 2>&1
-        
         [ $? -ne 0 ] && echo "❌ Falha ao abrir: $url"
     done
 }
