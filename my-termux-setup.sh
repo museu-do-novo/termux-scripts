@@ -14,7 +14,7 @@ echo "[*] Alterando espelho de repositórios..."
 sleep 2
 termux-change-repo
 clear
-
+------------------------------------------------------------
 # Lista de pacotes a serem instalados
 packages=("tmux" "x11-repo" "tesseract" "root-repo" "tur-repo" "python3" "git" "wget" "nmap" "netcat-openbsd" "termux-x11-nightly" "termux-api" "android-tools" "openssh" "htop" "zsh" "nodejs" "curl" "aria2" "axel" "ffmpeg" "libqrencode" "zbar")
 
@@ -33,6 +33,25 @@ for package in "${packages[@]}"; do
     fi
     clear
 done
+------------------------------------------------------------
+
+python_packages=("yt-dlp" "instaloader")
+
+# Atualizando repositórios e pacotes
+echo "[*] PYTHON: Instalando pacotes..."
+
+# Instalando pacotes
+for package in "${python_packages[@]}"; do
+    echo "[*] Instalando: $package..."
+    pip install "$package"
+    if [[ $? -ne 0 ]]; then
+        echo "[!] Erro ao instalar $package. Abortando..."
+        exit 1
+    fi
+    clear
+
+
+------------------------------------------------------------
 
 # URLs e arquivos APK para download e instalação
 termux_api_url="https://f-droid.org/repo/com.termux.api_51.apk"
@@ -52,6 +71,8 @@ for i in "${!download_urls[@]}"; do
         echo "[!] Erro ao baixar o APK: ${download_urls[i]}"
     fi
 done
+
+------------------------------------------------------------
 
 # Instalando Oh My Zsh
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
