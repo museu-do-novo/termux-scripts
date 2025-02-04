@@ -56,13 +56,16 @@ for package in "${python_packages[@]}"; do
 # URLs e arquivos APK para download e instalação
 termux_api_url="https://f-droid.org/repo/com.termux.api_51.apk"
 hackers_keyboard_url="https://f-droid.org/repo/org.pocketworkstation.pckeyboard_1041001.apk"
+vlc_url="https://f-droid.org/repo/org.videolan.vlc_13050736.apk"
+
 
 termux_api_apk=~/storage/downloads/termux-api.apk 
 hackers_keyboard_apk=~/storage/downloads/hackers-keyboard.apk
+vlc_apk=~/storage/dowloads/vlc.apk
 
 
-download_urls=("$termux_api_url" "$hackers_keyboard_url")
-apk_files=("$termux_api_apk" "$hackers_keyboard_apk")
+download_urls=("$termux_api_url" "$hackers_keyboard_url" "$vlc_url")
+apk_files=("$termux_api_apk" "$hackers_keyboard_apk" "$vlc_apk")
 # Baixando e instalando APKs
 for i in "${!download_urls[@]}"; do
     echo "[*] Baixando: ${download_urls[i]}..."
