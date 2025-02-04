@@ -16,7 +16,7 @@ termux-change-repo
 clear
 
 # Lista de pacotes a serem instalados
-packages=("tmux" "x11-repo" "root-repo" "tur-repo" "python3" "git" "wget" "nmap" "netcat-openbsd" "termux-x11-nightly" "termux-api" "android-tools" "openssh" "htop" "zsh" "nodejs" "curl" "aria2" "axel" "ffmpeg" "libqrencode" "zbar")
+packages=("tmux" "x11-repo" "tesseract" "root-repo" "tur-repo" "python3" "git" "wget" "nmap" "netcat-openbsd" "termux-x11-nightly" "termux-api" "android-tools" "openssh" "htop" "zsh" "nodejs" "curl" "aria2" "axel" "ffmpeg" "libqrencode" "zbar")
 
 # Atualizando repositórios e pacotes
 echo "[*] Atualizando pacotes..."
