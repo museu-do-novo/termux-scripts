@@ -50,7 +50,7 @@ sleep 2
 packages=("tmux" "x11-repo" "tesseract" "root-repo" \
 "tur-repo" "python3" "git" "wget" "neovim" "nmap" \
 "netcat-openbsd" "termux-x11-nightly" "termux-api" \
-"android-tools" "openssh" "htop" "zsh" "nodejs" \
+"android-tools" "termux-tools" "openssh" "htop" "zsh" "nodejs" \
 "curl" "aria2" "axel" "ffmpeg" "libqrencode" "zbar")
 
 # Instalando pacotes
