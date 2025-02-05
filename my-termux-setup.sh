@@ -115,8 +115,10 @@ if [ -f ~/termux-scripts/OMZ-plugins-setup.sh ]; then
     zsh -c 'zsh ~/termux-scripts/OMZ-plugins-setup.sh'
 else
     echo_color "red" "[!] Script de configuração de plugins não encontrado: OMZ-plugins-setup.sh"
-    exit 1
+    sleep 5
 fi
+
+git clone https://github.com/NvChad/starter ~/.config/nvim && nvim
 
 # Mensagem final
 echo_color "green" "[*] Configuração geral concluída!"
