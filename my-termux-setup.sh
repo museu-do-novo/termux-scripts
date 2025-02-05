@@ -107,6 +107,8 @@ else
     echo_color "cyan" "[*] Oh My Zsh já está instalado."
 fi
 
+chsh -s zsh
+
 # Script em zsh para adicionar os plugins
 if [ -f ~/termux-scripts/OMZ-plugins-setup.sh ]; then
     echo_color "cyan" "[*] Executando configuração de plugins para Oh My Zsh..."
