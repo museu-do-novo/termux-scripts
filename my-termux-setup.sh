@@ -90,7 +90,7 @@ download_urls=(\
 )
 
 echo_color "cyan" "[*] Baixando APKs..."
-wget -O "$download_path" "${download_urls[@]}"
+wget -P "$download_path" "${download_urls[@]}"
 if [[ $? -ne 0 ]]; then
     echo_color "red" "[!] Erro de download!"
     exit 1
