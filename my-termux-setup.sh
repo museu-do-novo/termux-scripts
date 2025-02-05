@@ -14,7 +14,7 @@ clear
 # Atualizando repositórios e pacotes
 echo "[*] Atualizando pacotes..."
 sleep 2
-pkg update && pkg upgrade -y
+pkg update  && pkg upgrade -y
 clear
 
 # Configurando permissões de armazenamento
