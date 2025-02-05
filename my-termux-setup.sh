@@ -110,7 +110,7 @@ fi
 # Script em zsh para adicionar os plugins
 if [ -f ~/termux-scripts/OMZ-plugins-setup.sh ]; then
     echo_color "cyan" "[*] Executando configuração de plugins para Oh My Zsh..."
-    zsh ~/termux-scripts/OMZ-plugins-setup.sh
+    zsh -c 'zsh ~/termux-scripts/OMZ-plugins-setup.sh'
 else
     echo_color "red" "[!] Script de configuração de plugins não encontrado: OMZ-plugins-setup.sh"
     exit 1
