@@ -20,6 +20,7 @@ echo_color() {
 cd
 clear
 echo_color "cyan" "[*] Iniciando configuração do Termux..."
+chmod +x ./*.sh
 sleep 2
 
 # Mudando espelho de repositório
