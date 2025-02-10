@@ -47,7 +47,7 @@ echo_color "cyan" "[*] Instalando pacotes..."
 sleep 2
 
 # Lista de pacotes a serem instalados
-packages=("tmux" "x11-repo" "tesseract" "root-repo" \
+packages=("tmux" "megacmd" "x11-repo" "tesseract" "root-repo" \
 "tur-repo" "python3" "git" "wget" "neovim" "nmap" \
 "netcat-openbsd" "termux-x11-nightly" "termux-api" \
 "android-tools" "termux-tools" "openssh" "htop" "zsh" "nodejs" \
