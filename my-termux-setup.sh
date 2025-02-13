@@ -68,7 +68,7 @@ done
 # Instalando pacotes do python
 echo_color "cyan" "[*] PYTHON: Instalando pacotes..."
 sleep 2
-python_packages=("yt-dlp" "instaloader")
+python_packages=("yt-dlp" "instaloader" "pymuxkali")
 
 for package in "${python_packages[@]}"; do
     echo_color "cyan" "[*] Instalando: $package..."
@@ -96,6 +96,8 @@ if [[ $? -ne 0 ]]; then
     echo_color "red" "[!] Erro de download!"
     exit 1
 fi
+
+pymuxkali -m
 
 # ------------------------------------------------------------
 # Instalando Oh My Zsh
