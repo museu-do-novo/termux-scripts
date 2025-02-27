@@ -36,13 +36,13 @@ usage() {
 # Valores padrão
 LOCAL_DIR="~/storage/pictures/FotosMega"
 MEGA_DIR="FotosMega"
-INTERVAL=5
+INTERVAL=0
 CLEAN_FILES=false
 COLORED_OUTPUT=true
 SCHEDULE_TIME=""
 ENCRYPT_FILES=false
 CRYPT_PASSWORD=""
-CHECK_DEPENDENCIES=false
+CHECK_DEPENDENCIES=true
 CAMERA=0  # 0 para câmera traseira, 1 para frontal
 
 # Cores para interface colorida (se ativada)
@@ -104,7 +104,7 @@ check_mega_login() {
 # Verificar dependências
 check_dependencies() {
     if $CHECK_DEPENDENCIES; then
-        commands=("mega-put" "termux-camera-photo" "mega-login" "mega-rm" "mega-mkdir")
+        commands=("megacmd" "termux-api")
         for cmd in "${commands[@]}"; do
             if ! command -v $cmd &> /dev/null; then
                 message "$RED" "Error: $cmd is not installed. Install it before proceeding."
@@ -166,7 +166,7 @@ capture_and_upload() {
 
             # Enviar a foto para o MEGA
             message "$BLUE" "Uploading photo to MEGA..."
-            if mega-put "$FILE_TO_UPLOAD" "$MEGA_DIR" >/dev/null 2>&1; then
+            if bash -c 'mega-put "$FILE_TO_UPLOAD" "$MEGA_DIR" >/dev/null 2>&1 &'; then # edit
                 message "$GREEN" "Photo uploaded to MEGA successfully!"
                 # Limpar arquivos locais, se necessário
                 if $CLEAN_FILES; then
