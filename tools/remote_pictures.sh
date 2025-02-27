@@ -42,7 +42,7 @@ COLORED_OUTPUT=true
 SCHEDULE_TIME=""
 ENCRYPT_FILES=false
 CRYPT_PASSWORD=""
-CHECK_DEPENDENCIES=true
+CHECK_DEPENDENCIES=false
 CAMERA=0  # 0 para câmera traseira, 1 para frontal
 
 # Cores para interface colorida (se ativada)
