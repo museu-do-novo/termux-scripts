@@ -27,7 +27,7 @@ usage() {
     echo "  -s TIME       Schedule execution at a specific time (format: HH:MM, default: none)"
     echo "  -e            Encrypt files before uploading (default: false)"
     echo "  -p PASSWORD   Password for encryption (required if -e is used)"
-    echo "  -D            Enable dependency checking (default: false)"
+    echo "  -D            Enable dependency checking (true/false, default: true)"
     echo "  -C CAMERA     Select camera (0 for back, 1 for front, default: 0)"
     echo "  -h            Display this help"
     exit 1
@@ -36,13 +36,13 @@ usage() {
 # Valores padrão
 LOCAL_DIR="~/storage/pictures/FotosMega"
 MEGA_DIR="FotosMega"
-INTERVAL=0
+INTERVAL=5
 CLEAN_FILES=false
 COLORED_OUTPUT=true
 SCHEDULE_TIME=""
 ENCRYPT_FILES=false
 CRYPT_PASSWORD=""
-CHECK_DEPENDENCIES=false
+CHECK_DEPENDENCIES=true  # Verificação de dependências ativada por padrão
 CAMERA=0  # 0 para câmera traseira, 1 para frontal
 
 # Cores para interface colorida (se ativada)
@@ -63,7 +63,7 @@ while getopts "d:m:i:cks:e:p:D:C:h" opt; do
         s) SCHEDULE_TIME="$OPTARG" ;;
         e) ENCRYPT_FILES=true ;;
         p) CRYPT_PASSWORD="$OPTARG" ;;
-        D) CHECK_DEPENDENCIES=true ;;
+        D) CHECK_DEPENDENCIES="$OPTARG" ;;
         C) CAMERA="$OPTARG" ;;
         h) usage ;;
         *) echo "Invalid option: -$OPTARG" >&2; usage ;;
@@ -78,6 +78,19 @@ message() {
         echo -e "${color}${msg}${RESET}"
     else
         echo "$msg"
+    fi
+}
+
+# Função para instalar dependências
+install_dependencies() {
+    message "$GREEN" "Installing dependencies..."
+    pkg update -y
+    pkg install -y megatools termux-api gnupg
+    if [ $? -eq 0 ]; then
+        message "$GREEN" "Dependencies installed successfully!"
+    else
+        message "$RED" "Failed to install dependencies. Please check your internet connection and try again."
+        exit 1
     fi
 }
 
@@ -104,17 +117,14 @@ check_mega_login() {
 # Verificar dependências
 check_dependencies() {
     if $CHECK_DEPENDENCIES; then
-        commands=("megacmd" "termux-api")
+        commands=("megacmd" "termux-api" "gpg")
         for cmd in "${commands[@]}"; do
             if ! command -v $cmd &> /dev/null; then
-                message "$RED" "Error: $cmd is not installed. Install it before proceeding."
-                exit 1
+                message "$RED" "Error: $cmd is not installed. Installing now..."
+                install_dependencies
+                break
             fi
         done
-        if $ENCRYPT_FILES && ! command -v gpg &> /dev/null; then
-            message "$RED" "Error: gpg is not installed. Install it to use encryption."
-            exit 1
-        fi
     else
         message "$YELLOW" "Dependency checking is disabled."
     fi
@@ -166,7 +176,7 @@ capture_and_upload() {
 
             # Enviar a foto para o MEGA
             message "$BLUE" "Uploading photo to MEGA..."
-            if bash -c 'mega-put "$FILE_TO_UPLOAD" "$MEGA_DIR" >/dev/null 2>&1 &'; then # edit
+            if mega-put "$FILE_TO_UPLOAD" "$MEGA_DIR" >/dev/null 2>&1; then
                 message "$GREEN" "Photo uploaded to MEGA successfully!"
                 # Limpar arquivos locais, se necessário
                 if $CLEAN_FILES; then
