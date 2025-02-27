@@ -2,15 +2,15 @@
 
 # Função para exibir a ajuda
 usage() {
-    echo "Uso: $0 [-d DIR_LOCAL] [-m DIR_MEGA] [-i INTERVAL] [-c] [-q] [-k] [-s] [-e] [-h]"
+    echo "Uso: $0 [-d DIR_LOCAL] [-m DIR_MEGA] [-i INTERVAL] [-c] [-k] [-s FREQUENCY] [-e] [-p SENHA] [-h]"
     echo "  -d DIR_LOCAL  Diretório local para salvar as fotos (padrão: ~/storage/pictures/FotosMega)"
     echo "  -m DIR_MEGA   Diretório no MEGA para enviar as fotos (padrão: FotosMega)"
     echo "  -i INTERVAL   Intervalo entre as fotos em segundos (padrão: 5)"
     echo "  -c            Limpar arquivos locais após envio"
-    echo "  -q            Verificar espaço no MEGA e parar se estiver quase cheio"
     echo "  -k            Ativar interface colorida"
-    echo "  -s            Agendar execução com cron (uma vez por hora)"
+    echo "  -s FREQUENCY  Agendar execução com cron (ex: '1h' para 1 hora, '30m' para 30 minutos)"
     echo "  -e            Criptografar arquivos antes de enviar"
+    echo "  -p SENHA      Senha para criptografia (obrigatório se -e for usado)"
     echo "  -h            Exibir esta ajuda"
     exit 1
 }
@@ -20,10 +20,10 @@ DIR_LOCAL="~/storage/pictures/FotosMega"
 DIR_MEGA="FotosMega"
 INTERVAL=5
 CLEAN_FILES=0
-CHECK_QUOTA=0
 COLORED_OUTPUT=0
-SCHEDULE_CRON=0
+SCHEDULE_CRON=""
 ENCRYPT_FILES=0
+CRYPT_PASSWORD=""
 
 # Cores para interface colorida (se ativada)
 GREEN="\033[32m"
@@ -33,16 +33,16 @@ BLUE="\033[34m"
 RESET="\033[0m"
 
 # Parser de argumentos
-while getopts "d:m:i:cqkseh" opt; do
+while getopts "d:m:i:cks:e:p:h" opt; do
     case $opt in
         d) DIR_LOCAL="$OPTARG" ;;
         m) DIR_MEGA="$OPTARG" ;;
         i) INTERVAL="$OPTARG" ;;
         c) CLEAN_FILES=1 ;;
-        q) CHECK_QUOTA=1 ;;
         k) COLORED_OUTPUT=1 ;;
-        s) SCHEDULE_CRON=1 ;;
+        s) SCHEDULE_CRON="$OPTARG" ;;
         e) ENCRYPT_FILES=1 ;;
+        p) CRYPT_PASSWORD="$OPTARG" ;;
         h) usage ;;
         *) echo "Opção inválida: -$OPTARG" >&2; usage ;;
     esac
@@ -74,23 +74,16 @@ check_dependencies() {
     fi
 }
 
-# Verifica o espaço no MEGA
-check_mega_quota() {
-    if [ "$CHECK_QUOTA" -eq 1 ]; then
-        QUOTA=$(mega-quota | grep "Used" | awk '{print $2}')
-        if [ "$QUOTA" -gt 90 ]; then
-            message "$RED" "Espaço no MEGA quase cheio (90% usado). Encerrando..."
-            exit 1
-        fi
-    fi
-}
-
 # Criptografa arquivos
 encrypt_file() {
     local file="$1"
     if [ "$ENCRYPT_FILES" -eq 1 ]; then
+        if [ -z "$CRYPT_PASSWORD" ]; then
+            message "$RED" "Erro: A senha de criptografia não foi fornecida. Use a flag -p."
+            exit 1
+        fi
         message "$BLUE" "Criptografando $file..."
-        gpg -c "$file" && rm "$file"
+        echo "$CRYPT_PASSWORD" | gpg --batch --passphrase-fd 0 -c "$file" && rm "$file"
         echo "$file.gpg"
     else
         echo "$file"
@@ -125,19 +118,18 @@ capture_and_upload() {
             # Criptografa o arquivo, se necessário
             FILE_TO_UPLOAD=$(encrypt_file "$FOTO")
 
-            # Envia a foto para a conta MEGA em segundo plano
+            # Envia a foto para a conta MEGA
             message "$BLUE" "Enviando foto para o MEGA..."
-            nohup mega-put "$FILE_TO_UPLOAD" "$DIR_MEGA" >/dev/null 2>&1 &
-            message "$GREEN" "Foto enviada para o MEGA em segundo plano!"
-
-            # Limpa arquivos locais, se necessário
-            if [ "$CLEAN_FILES" -eq 1 ]; then
-                message "$YELLOW" "Removendo arquivo local: $FILE_TO_UPLOAD..."
-                rm "$FILE_TO_UPLOAD"
+            if mega-put "$FILE_TO_UPLOAD" "$DIR_MEGA" >/dev/null 2>&1; then
+                message "$GREEN" "Foto enviada para o MEGA com sucesso!"
+                # Limpa arquivos locais, se necessário
+                if [ "$CLEAN_FILES" -eq 1 ]; then
+                    message "$YELLOW" "Removendo arquivo local: $FILE_TO_UPLOAD..."
+                    rm "$FILE_TO_UPLOAD"
+                fi
+            else
+                message "$RED" "Erro ao enviar a foto para o MEGA!"
             fi
-
-            # Verifica o espaço no MEGA, se necessário
-            check_mega_quota
 
             # Espera o intervalo definido antes de tirar outra foto
             message "$BLUE" "Aguardando $INTERVAL segundos para a próxima captura..."
@@ -150,9 +142,15 @@ capture_and_upload() {
 
 # Agendamento com cron
 schedule_cron() {
-    if [ "$SCHEDULE_CRON" -eq 1 ]; then
-        message "$GREEN" "Agendando execução com cron (uma vez por hora)..."
-        (crontab -l 2>/dev/null; echo "0 * * * * $0 -d '$DIR_LOCAL' -m '$DIR_MEGA' -i $INTERVAL -c -q -k -e") | crontab -
+    if [ -n "$SCHEDULE_CRON" ]; then
+        case "$SCHEDULE_CRON" in
+            "1h") CRON_EXPR="0 * * * *" ;;
+            "30m") CRON_EXPR="*/30 * * * *" ;;
+            "15m") CRON_EXPR="*/15 * * * *" ;;
+            *) message "$RED" "Frequência inválida. Use '1h', '30m' ou '15m'."; exit 1 ;;
+        esac
+        message "$GREEN" "Agendando execução com cron ($SCHEDULE_CRON)..."
+        (crontab -l 2>/dev/null; echo "$CRON_EXPR $0 -d '$DIR_LOCAL' -m '$DIR_MEGA' -i $INTERVAL -c -k -e -p '$CRYPT_PASSWORD'") | crontab -
         message "$GREEN" "Agendamento concluído!"
         exit 0
     fi
