@@ -18,7 +18,7 @@ EOF
 
 # Função para exibir a ajuda
 usage() {
-    echo "Usage: $0 [-d LOCAL_DIR] [-m MEGA_DIR] [-i INTERVAL] [-c] [-k] [-s TIME] [-e] [-p PASSWORD] [-D] [-h]"
+    echo "Usage: $0 [-d LOCAL_DIR] [-m MEGA_DIR] [-i INTERVAL] [-c] [-k] [-s TIME] [-e] [-p PASSWORD] [-D] [-C CAMERA] [-h]"
     echo "  -d LOCAL_DIR  Local directory to save photos (default: ~/storage/pictures/FotosMega)"
     echo "  -m MEGA_DIR   MEGA directory to upload photos (default: FotosMega)"
     echo "  -i INTERVAL   Interval between photos in seconds (default: 5)"
@@ -28,6 +28,7 @@ usage() {
     echo "  -e            Encrypt files before uploading (default: false)"
     echo "  -p PASSWORD   Password for encryption (required if -e is used)"
     echo "  -D            Enable dependency checking (default: false)"
+    echo "  -C CAMERA     Select camera (0 for back, 1 for front, default: 0)"
     echo "  -h            Display this help"
     exit 1
 }
@@ -35,13 +36,14 @@ usage() {
 # Valores padrão
 LOCAL_DIR="~/storage/pictures/FotosMega"
 MEGA_DIR="FotosMega"
-INTERVAL=0
-CLEAN_FILES=true
+INTERVAL=5
+CLEAN_FILES=false
 COLORED_OUTPUT=true
 SCHEDULE_TIME=""
 ENCRYPT_FILES=false
 CRYPT_PASSWORD=""
 CHECK_DEPENDENCIES=false
+CAMERA=0  # 0 para câmera traseira, 1 para frontal
 
 # Cores para interface colorida (se ativada)
 GREEN="\033[32m"
@@ -51,7 +53,7 @@ BLUE="\033[34m"
 RESET="\033[0m"
 
 # Parser de argumentos
-while getopts "d:m:i:cks:e:p:Dh" opt; do
+while getopts "d:m:i:cks:e:p:D:C:h" opt; do
     case $opt in
         d) LOCAL_DIR="$OPTARG" ;;
         m) MEGA_DIR="$OPTARG" ;;
@@ -62,6 +64,7 @@ while getopts "d:m:i:cks:e:p:Dh" opt; do
         e) ENCRYPT_FILES=true ;;
         p) CRYPT_PASSWORD="$OPTARG" ;;
         D) CHECK_DEPENDENCIES=true ;;
+        C) CAMERA="$OPTARG" ;;
         h) usage ;;
         *) echo "Invalid option: -$OPTARG" >&2; usage ;;
     esac
@@ -150,9 +153,9 @@ capture_and_upload() {
         # Nome da foto com o timestamp
         PHOTO="$LOCAL_DIR/$TIMESTAMP.jpg"
 
-        # Capturar foto usando a câmera do Termux
+        # Capturar foto usando a câmera selecionada
         message "$GREEN" "Capturing photo: $PHOTO..."
-        termux-camera-photo -c 0 "$PHOTO"
+        termux-camera-photo -c "$CAMERA" "$PHOTO"
 
         # Verificar se a foto foi capturada com sucesso
         if [ -f "$PHOTO" ]; then
@@ -199,7 +202,7 @@ schedule_cron() {
         CRON_EXPR="$MINUTE $HOUR * * *"
 
         message "$GREEN" "Scheduling execution at $SCHEDULE_TIME daily..."
-        (crontab -l 2>/dev/null; echo "$CRON_EXPR $0 -d '$LOCAL_DIR' -m '$MEGA_DIR' -i $INTERVAL -c -k -e -p '$CRYPT_PASSWORD'") | crontab -
+        (crontab -l 2>/dev/null; echo "$CRON_EXPR $0 -d '$LOCAL_DIR' -m '$MEGA_DIR' -i $INTERVAL -c -k -e -p '$CRYPT_PASSWORD' -C $CAMERA") | crontab -
         message "$GREEN" "Scheduling completed!"
         exit 0
     fi
