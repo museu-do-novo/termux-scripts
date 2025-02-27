@@ -1,29 +1,47 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
+# Função para exibir o banner colorido
+display_banner() {
+    clear
+    echo -e "\033[1;36m"  # Ciano brilhante
+    cat << 'EOF'
+██████╗     ███████╗    ███╗   ███╗     ██████╗     ████████╗    ███████╗       ██████╗     ██╗     ██████╗    ███████╗
+██╔══██╗    ██╔════╝    ████╗ ████║    ██╔═══██╗    ╚══██╔══╝    ██╔════╝       ██╔══██╗    ██║    ██╔════╝    ██╔════╝
+██████╔╝    █████╗      ██╔████╔██║    ██║   ██║       ██║       █████╗         ██████╔╝    ██║    ██║         ███████╗
+██╔══██╗    ██╔══╝      ██║╚██╔╝██║    ██║   ██║       ██║       ██╔══╝         ██╔═══╝     ██║    ██║         ╚════██║
+██║  ██║    ███████╗    ██║ ╚═╝ ██║    ╚██████╔╝       ██║       ███████╗       ██║         ██║    ╚██████╗    ███████║
+╚═╝  ╚═╝    ╚══════╝    ╚═╝     ╚═╝     ╚═════╝        ╚═╝       ╚══════╝       ╚═╝         ╚═╝     ╚═════╝    ╚══════╝
+                                                                                                                       
+EOF
+    echo -e "\033[0m"  # Resetar cor
+}
+
 # Função para exibir a ajuda
 usage() {
-    echo "Uso: $0 [-d DIR_LOCAL] [-m DIR_MEGA] [-i INTERVAL] [-c] [-k] [-s FREQUENCY] [-e] [-p SENHA] [-h]"
-    echo "  -d DIR_LOCAL  Diretório local para salvar as fotos (padrão: ~/storage/pictures/FotosMega)"
-    echo "  -m DIR_MEGA   Diretório no MEGA para enviar as fotos (padrão: FotosMega)"
-    echo "  -i INTERVAL   Intervalo entre as fotos em segundos (padrão: 5)"
-    echo "  -c            Limpar arquivos locais após envio"
-    echo "  -k            Ativar interface colorida"
-    echo "  -s FREQUENCY  Agendar execução com cron (ex: '1h' para 1 hora, '30m' para 30 minutos)"
-    echo "  -e            Criptografar arquivos antes de enviar"
-    echo "  -p SENHA      Senha para criptografia (obrigatório se -e for usado)"
-    echo "  -h            Exibir esta ajuda"
+    echo "Usage: $0 [-d LOCAL_DIR] [-m MEGA_DIR] [-i INTERVAL] [-c] [-k] [-s TIME] [-e] [-p PASSWORD] [-D] [-h]"
+    echo "  -d LOCAL_DIR  Local directory to save photos (default: ~/storage/pictures/FotosMega)"
+    echo "  -m MEGA_DIR   MEGA directory to upload photos (default: FotosMega)"
+    echo "  -i INTERVAL   Interval between photos in seconds (default: 5)"
+    echo "  -c            Clean local files after upload (default: false)"
+    echo "  -k            Enable colored interface (default: true)"
+    echo "  -s TIME       Schedule execution at a specific time (format: HH:MM, default: none)"
+    echo "  -e            Encrypt files before uploading (default: false)"
+    echo "  -p PASSWORD   Password for encryption (required if -e is used)"
+    echo "  -D            Enable dependency checking (default: false)"
+    echo "  -h            Display this help"
     exit 1
 }
 
 # Valores padrão
-DIR_LOCAL="~/storage/pictures/FotosMega"
-DIR_MEGA="FotosMega"
-INTERVAL=5
-CLEAN_FILES=0
-COLORED_OUTPUT=0
-SCHEDULE_CRON=""
-ENCRYPT_FILES=0
+LOCAL_DIR="~/storage/pictures/FotosMega"
+MEGA_DIR="FotosMega"
+INTERVAL=0
+CLEAN_FILES=true
+COLORED_OUTPUT=true
+SCHEDULE_TIME=""
+ENCRYPT_FILES=false
 CRYPT_PASSWORD=""
+CHECK_DEPENDENCIES=false
 
 # Cores para interface colorida (se ativada)
 GREEN="\033[32m"
@@ -33,18 +51,19 @@ BLUE="\033[34m"
 RESET="\033[0m"
 
 # Parser de argumentos
-while getopts "d:m:i:cks:e:p:h" opt; do
+while getopts "d:m:i:cks:e:p:Dh" opt; do
     case $opt in
-        d) DIR_LOCAL="$OPTARG" ;;
-        m) DIR_MEGA="$OPTARG" ;;
+        d) LOCAL_DIR="$OPTARG" ;;
+        m) MEGA_DIR="$OPTARG" ;;
         i) INTERVAL="$OPTARG" ;;
-        c) CLEAN_FILES=1 ;;
-        k) COLORED_OUTPUT=1 ;;
-        s) SCHEDULE_CRON="$OPTARG" ;;
-        e) ENCRYPT_FILES=1 ;;
+        c) CLEAN_FILES=true ;;
+        k) COLORED_OUTPUT=true ;;
+        s) SCHEDULE_TIME="$OPTARG" ;;
+        e) ENCRYPT_FILES=true ;;
         p) CRYPT_PASSWORD="$OPTARG" ;;
+        D) CHECK_DEPENDENCIES=true ;;
         h) usage ;;
-        *) echo "Opção inválida: -$OPTARG" >&2; usage ;;
+        *) echo "Invalid option: -$OPTARG" >&2; usage ;;
     esac
 done
 
@@ -52,37 +71,61 @@ done
 message() {
     local color="$1"
     local msg="$2"
-    if [ "$COLORED_OUTPUT" -eq 1 ]; then
+    if $COLORED_OUTPUT; then
         echo -e "${color}${msg}${RESET}"
     else
         echo "$msg"
     fi
 }
 
-# Verifica dependências
-check_dependencies() {
-    commands=("mega-put" "termux-camera-photo" "mega-login" "mega-rm" "mega-mkdir")
-    for cmd in "${commands[@]}"; do
-        if ! command -v $cmd &> /dev/null; then
-            message "$RED" "Erro: $cmd não está instalado. Instale antes de continuar."
+# Verificar se está logado no MEGA
+check_mega_login() {
+    if mega-whoami >/dev/null 2>&1; then
+        message "$GREEN" "Logged into MEGA as: $(mega-whoami)"
+    else
+        message "$YELLOW" "You are not logged into MEGA."
+        message "$BLUE" "Please log in to your MEGA account."
+        read -p "Enter your MEGA email: " MEGA_EMAIL
+        read -s -p "Enter your MEGA password: " MEGA_PASSWORD
+        echo
+        mega-login "$MEGA_EMAIL" "$MEGA_PASSWORD" >/dev/null 2>&1
+        if [ $? -eq 0 ]; then
+            message "$GREEN" "Successfully logged into MEGA as: $(mega-whoami)"
+        else
+            message "$RED" "Failed to log in. Please check your credentials and try again."
             exit 1
         fi
-    done
-    if [ "$ENCRYPT_FILES" -eq 1 ] && ! command -v gpg &> /dev/null; then
-        message "$RED" "Erro: gpg não está instalado. Instale para usar criptografia."
-        exit 1
     fi
 }
 
-# Criptografa arquivos
-encrypt_file() {
-    local file="$1"
-    if [ "$ENCRYPT_FILES" -eq 1 ]; then
-        if [ -z "$CRYPT_PASSWORD" ]; then
-            message "$RED" "Erro: A senha de criptografia não foi fornecida. Use a flag -p."
+# Verificar dependências
+check_dependencies() {
+    if $CHECK_DEPENDENCIES; then
+        commands=("mega-put" "termux-camera-photo" "mega-login" "mega-rm" "mega-mkdir")
+        for cmd in "${commands[@]}"; do
+            if ! command -v $cmd &> /dev/null; then
+                message "$RED" "Error: $cmd is not installed. Install it before proceeding."
+                exit 1
+            fi
+        done
+        if $ENCRYPT_FILES && ! command -v gpg &> /dev/null; then
+            message "$RED" "Error: gpg is not installed. Install it to use encryption."
             exit 1
         fi
-        message "$BLUE" "Criptografando $file..."
+    else
+        message "$YELLOW" "Dependency checking is disabled."
+    fi
+}
+
+# Criptografar arquivos
+encrypt_file() {
+    local file="$1"
+    if $ENCRYPT_FILES; then
+        if [ -z "$CRYPT_PASSWORD" ]; then
+            message "$RED" "Error: Encryption password not provided. Use the -p flag."
+            exit 1
+        fi
+        message "$BLUE" "Encrypting $file..."
         echo "$CRYPT_PASSWORD" | gpg --batch --passphrase-fd 0 -c "$file" && rm "$file"
         echo "$file.gpg"
     else
@@ -90,79 +133,87 @@ encrypt_file() {
     fi
 }
 
-# Configura o ambiente
+# Configurar ambiente
 setup() {
-    message "$GREEN" "Configurando ambiente..."
-    mkdir -p "$DIR_LOCAL"
-    mega-rm -rf "$DIR_MEGA"
-    mega-mkdir "$DIR_MEGA"
+    message "$GREEN" "Setting up environment..."
+    mkdir -p "$LOCAL_DIR"
+    mega-rm -rf "$MEGA_DIR"
+    mega-mkdir "$MEGA_DIR"
 }
 
-# Captura e envia fotos
+# Capturar e enviar fotos
 capture_and_upload() {
     while true; do
-        # Gera um timestamp no formato AAAAMMDD_HHMMSS
+        # Gerar um timestamp no formato AAAAMMDD_HHMMSS
         TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 
         # Nome da foto com o timestamp
-        FOTO="$DIR_LOCAL/$TIMESTAMP.jpg"
+        PHOTO="$LOCAL_DIR/$TIMESTAMP.jpg"
 
-        # Captura a foto usando a câmera do Termux
-        message "$GREEN" "Capturando foto: $FOTO..."
-        termux-camera-photo -c 0 "$FOTO"
+        # Capturar foto usando a câmera do Termux
+        message "$GREEN" "Capturing photo: $PHOTO..."
+        termux-camera-photo -c 0 "$PHOTO"
 
-        # Verifica se a foto foi capturada com sucesso
-        if [ -f "$FOTO" ]; then
-            message "$GREEN" "Foto capturada e salva em $FOTO"
+        # Verificar se a foto foi capturada com sucesso
+        if [ -f "$PHOTO" ]; then
+            message "$GREEN" "Photo captured and saved to $PHOTO"
 
-            # Criptografa o arquivo, se necessário
-            FILE_TO_UPLOAD=$(encrypt_file "$FOTO")
+            # Criptografar o arquivo, se necessário
+            FILE_TO_UPLOAD=$(encrypt_file "$PHOTO")
 
-            # Envia a foto para a conta MEGA
-            message "$BLUE" "Enviando foto para o MEGA..."
-            if mega-put "$FILE_TO_UPLOAD" "$DIR_MEGA" >/dev/null 2>&1; then
-                message "$GREEN" "Foto enviada para o MEGA com sucesso!"
-                # Limpa arquivos locais, se necessário
-                if [ "$CLEAN_FILES" -eq 1 ]; then
-                    message "$YELLOW" "Removendo arquivo local: $FILE_TO_UPLOAD..."
+            # Enviar a foto para o MEGA
+            message "$BLUE" "Uploading photo to MEGA..."
+            if mega-put "$FILE_TO_UPLOAD" "$MEGA_DIR" >/dev/null 2>&1; then
+                message "$GREEN" "Photo uploaded to MEGA successfully!"
+                # Limpar arquivos locais, se necessário
+                if $CLEAN_FILES; then
+                    message "$YELLOW" "Removing local file: $FILE_TO_UPLOAD..."
                     rm "$FILE_TO_UPLOAD"
                 fi
             else
-                message "$RED" "Erro ao enviar a foto para o MEGA!"
+                message "$RED" "Error uploading photo to MEGA!"
             fi
 
-            # Espera o intervalo definido antes de tirar outra foto
-            message "$BLUE" "Aguardando $INTERVAL segundos para a próxima captura..."
+            # Aguardar o intervalo definido antes de capturar a próxima foto
+            message "$BLUE" "Waiting $INTERVAL seconds for the next capture..."
             sleep "$INTERVAL"
         else
-            message "$RED" "Erro ao capturar a foto!"
+            message "$RED" "Error capturing photo!"
         fi
     done
 }
 
-# Agendamento com cron
+# Agendar com cron em um horário específico
 schedule_cron() {
-    if [ -n "$SCHEDULE_CRON" ]; then
-        case "$SCHEDULE_CRON" in
-            "1h") CRON_EXPR="0 * * * *" ;;
-            "30m") CRON_EXPR="*/30 * * * *" ;;
-            "15m") CRON_EXPR="*/15 * * * *" ;;
-            *) message "$RED" "Frequência inválida. Use '1h', '30m' ou '15m'."; exit 1 ;;
-        esac
-        message "$GREEN" "Agendando execução com cron ($SCHEDULE_CRON)..."
-        (crontab -l 2>/dev/null; echo "$CRON_EXPR $0 -d '$DIR_LOCAL' -m '$DIR_MEGA' -i $INTERVAL -c -k -e -p '$CRYPT_PASSWORD'") | crontab -
-        message "$GREEN" "Agendamento concluído!"
+    if [ -n "$SCHEDULE_TIME" ]; then
+        # Validar formato do horário (HH:MM)
+        if ! [[ "$SCHEDULE_TIME" =~ ^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$ ]]; then
+            message "$RED" "Invalid time format. Use HH:MM."
+            exit 1
+        fi
+
+        # Dividir o horário em horas e minutos
+        IFS=":" read -r HOUR MINUTE <<< "$SCHEDULE_TIME"
+
+        # Criar expressão cron
+        CRON_EXPR="$MINUTE $HOUR * * *"
+
+        message "$GREEN" "Scheduling execution at $SCHEDULE_TIME daily..."
+        (crontab -l 2>/dev/null; echo "$CRON_EXPR $0 -d '$LOCAL_DIR' -m '$MEGA_DIR' -i $INTERVAL -c -k -e -p '$CRYPT_PASSWORD'") | crontab -
+        message "$GREEN" "Scheduling completed!"
         exit 0
     fi
 }
 
 # Execução principal
 main() {
+    display_banner
     check_dependencies
+    check_mega_login
     setup
     schedule_cron
     capture_and_upload
 }
 
-# Inicia o script
+# Iniciar o script
 main
