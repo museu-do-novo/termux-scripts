@@ -27,7 +27,7 @@ usage() {
     echo "  -s TIME       Schedule execution at a specific time (format: HH:MM, default: none)"
     echo "  -e            Encrypt files before uploading (default: false)"
     echo "  -p PASSWORD   Password for encryption (required if -e is used)"
-    echo "  -D            Enable dependency checking (true/false, default: true)"
+    echo "  -D            Enable dependency checking (default: false)"
     echo "  -C CAMERA     Select camera (0 for back, 1 for front, default: 0)"
     echo "  -h            Display this help"
     exit 1
@@ -42,7 +42,7 @@ COLORED_OUTPUT=true
 SCHEDULE_TIME=""
 ENCRYPT_FILES=false
 CRYPT_PASSWORD=""
-CHECK_DEPENDENCIES=true  # Verificação de dependências ativada por padrão
+CHECK_DEPENDENCIES=false  # Verificação de dependências desativada por padrão
 CAMERA=0  # 0 para câmera traseira, 1 para frontal
 
 # Cores para interface colorida (se ativada)
@@ -53,7 +53,7 @@ BLUE="\033[34m"
 RESET="\033[0m"
 
 # Parser de argumentos
-while getopts "d:m:i:cks:e:p:D:C:h" opt; do
+while getopts "d:m:i:cks:e:p:DC:h" opt; do
     case $opt in
         d) LOCAL_DIR="$OPTARG" ;;
         m) MEGA_DIR="$OPTARG" ;;
@@ -63,7 +63,7 @@ while getopts "d:m:i:cks:e:p:D:C:h" opt; do
         s) SCHEDULE_TIME="$OPTARG" ;;
         e) ENCRYPT_FILES=true ;;
         p) CRYPT_PASSWORD="$OPTARG" ;;
-        D) CHECK_DEPENDENCIES="$OPTARG" ;;
+        D) CHECK_DEPENDENCIES=true ;;  # -D ativa a verificação de dependências
         C) CAMERA="$OPTARG" ;;
         h) usage ;;
         *) echo "Invalid option: -$OPTARG" >&2; usage ;;
