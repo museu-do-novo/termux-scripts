@@ -56,7 +56,7 @@ How to Use Script Arguments
     -C CAMERA           Selects the camera (0 for back, 1 for front, default: 0). 
     -D                  Enables dependency checking (default: false). 
     -h                  Displays help; 
-
+    -I                  Colect some device info.
 Usage Examples
 
     Default execution (back camera):
