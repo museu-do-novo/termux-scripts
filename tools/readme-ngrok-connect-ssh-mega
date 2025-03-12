@@ -1,0 +1,23 @@
+# Conectar via MEGA
+
+Este script automatiza o processo de baixar o comando SSH do MEGA e conectar ao servidor.
+
+## Requisitos
+
+- **MEGA-CMD**: Para baixar o arquivo do MEGA.
+- **SSH**: Para conectar ao servidor.
+
+## Instalação
+
+1. Instale o MEGA-CMD:
+   - Siga as instruções em: [https://github.com/meganz/MEGAcmd](https://github.com/meganz/MEGAcmd).
+   - Configure suas credenciais:
+     ```bash
+     mega-login seu_email sua_senha
+     ```
+
+2. Clone o repositório ou copie o script para o seu sistema.
+
+3. Torne o script executável:
+   ```bash
+   chmod +x connect-via-mega.sh
