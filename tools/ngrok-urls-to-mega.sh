@@ -2,6 +2,8 @@
 
 ## Este script automatiza a captura da URL do Ngrok, formata um comando SSH e envia o comando para o MEGA.
 ## Dependências: ngrok (instale a partir do site), mega-cmd (instale a partir do site), jq.
+## no receptor pode usar esse comando para manter uma sessao ssh sempre ativa mesmo com os urls do ngrok mudando:
+## while true; do $(mega-cat ssh_command.txt);done
 # ============================================================================================================
 
 # Configurações
@@ -55,6 +57,7 @@ upload_to_mega() {
 
 # Função principal
 main() {
+    clear;
     start_ngrok &&
     capture_ngrok_url &&
     format_ssh_command &&
