@@ -9,10 +9,11 @@
 # ============================================================================================================
 
 # Configurações
+WHOIAM=$(whoami)
 COMMAND_OUTPUT="$TMPDIR/ngrok.log"
 SSH_COMMAND_FILE="$TMPDIR/ssh_command.txt"
 MEGA_UPLOAD_PATH="${MEGA_UPLOAD_PATH:-/}"    # Caminho no MEGA (pode ser sobrescrito por variável de ambiente)
-SSH_USER="${SSH_USER:-u0_a544}"              # Usuário SSH (pode ser sobrescrito por variável de ambiente)
+SSH_USER="${"$WHOIAM":-u0_a544}"              # Usuário SSH (pode ser sobrescrito por variável de ambiente)
 MY_PORT="${MY_PORT:-8022}"                   # Porta SSH local (pode ser sobrescrito por variável de ambiente)
 LOOP_INTERVAL="${LOOP_INTERVAL:-1500}"       # Intervalo entre execuções do loop (em segundos)
 
