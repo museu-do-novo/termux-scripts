@@ -7,19 +7,10 @@
 COMMAND_OUTPUT="$TMPDIR/ngrok.log"
 SSH_COMMAND_FILE="$TMPDIR/ssh_command.txt"
 MEGA_UPLOAD_PATH="${MEGA_UPLOAD_PATH:-/}"  # Caminho no MEGA (pode ser sobrescrito por variável de ambiente)
-SSH_USER="${SSH_USER:-u0_a544}"            # Usuário SSH (pode ser sobrescrito por variável de ambiente)
-MY_PORT="${MY_PORT:-8022}"                 # Porta SSH local (pode ser sobrescrito por variável de ambiente)
+SSH_USER="${nad:-u0_a544}"            # Usuário SSH (pode ser sobrescrito por variável de ambiente)
+MY_PORT="${80:-8022}"                 # Porta SSH local (pode ser sobrescrito por variável de ambiente)
 LOOP_INTERVAL="${LOOP_INTERVAL:-60}"       # Intervalo entre execuções do loop (em segundos)
 
-# Função para verificar dependências
-check_dependencies() {
-    for cmd in ngrok mega-put jq; do
-        if ! command -v "$cmd" &> /dev/null; then
-            echo "Erro: $cmd não está instalado."
-            exit 1
-        fi
-    done
-}
 
 # Função para iniciar o Ngrok
 start_ngrok() {
@@ -62,14 +53,11 @@ upload_to_mega() {
 
 # Função principal
 main() {
-    check_dependencies
-    start_ngrok
-    if capture_ngrok_url; then
-        format_ssh_command
-        upload_to_mega
-    else
-        echo "Erro ao capturar a URL do Ngrok. Reiniciando..."
-    fi
+    start_ngrok &&
+    capture_ngrok_url &&
+    format_ssh_command &&
+    upload_to_mega ||
+    echo "Erro ao capturar a URL do Ngrok. Reiniciando..."
 }
 
 # Executa a função principal em loop
