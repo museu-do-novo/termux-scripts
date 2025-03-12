@@ -2,16 +2,17 @@
 
 ## Este script automatiza a captura da URL do Ngrok, formata um comando SSH e envia o comando para o MEGA.
 ## Dependências: ngrok (instale a partir do site), mega-cmd (instale a partir do site), jq.
+# ============================================================================================================
 
 # Configurações
 COMMAND_OUTPUT="$TMPDIR/ngrok.log"
 SSH_COMMAND_FILE="$TMPDIR/ssh_command.txt"
-MEGA_UPLOAD_PATH="${MEGA_UPLOAD_PATH:-/}"  # Caminho no MEGA (pode ser sobrescrito por variável de ambiente)
-SSH_USER="${nad:-u0_a544}"            # Usuário SSH (pode ser sobrescrito por variável de ambiente)
-MY_PORT="${80:-8022}"                 # Porta SSH local (pode ser sobrescrito por variável de ambiente)
-LOOP_INTERVAL="${LOOP_INTERVAL:-60}"       # Intervalo entre execuções do loop (em segundos)
+MEGA_UPLOAD_PATH="${MEGA_UPLOAD_PATH:-/}"    # Caminho no MEGA (pode ser sobrescrito por variável de ambiente)
+SSH_USER="${SSH_USER:-u0_a544}"              # Usuário SSH (pode ser sobrescrito por variável de ambiente)
+MY_PORT="${MY_PORT:-8022}"                   # Porta SSH local (pode ser sobrescrito por variável de ambiente)
+LOOP_INTERVAL="${LOOP_INTERVAL:-1500}"       # Intervalo entre execuções do loop (em segundos)
 
-
+# ============================================================================================================
 # Função para iniciar o Ngrok
 start_ngrok() {
     echo "Iniciando Ngrok na porta $MY_PORT..."
@@ -50,6 +51,8 @@ upload_to_mega() {
         return 1
     fi
 }
+
+# ============================================================================================================
 
 # Função principal
 main() {
