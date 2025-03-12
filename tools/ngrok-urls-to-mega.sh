@@ -15,6 +15,7 @@ LOOP_INTERVAL="${LOOP_INTERVAL:-1500}"       # Intervalo entre execuções do lo
 # ============================================================================================================
 # Função para iniciar o Ngrok
 start_ngrok() {
+    pkill ngrok
     echo "Iniciando Ngrok na porta $MY_PORT..."
     nohup ngrok tcp "$MY_PORT" > "$COMMAND_OUTPUT" 2>&1 &
     sleep 5  # Aguarda o Ngrok inicializar
@@ -43,13 +44,11 @@ format_ssh_command() {
 
 # Função para enviar o arquivo para o MEGA
 upload_to_mega() {
-    echo "Enviando arquivo para o MEGA..."
-    if mega-put "$SSH_COMMAND_FILE" "$MEGA_UPLOAD_PATH"; then
-        echo "Arquivo enviado para o MEGA: $SSH_COMMAND_FILE"
-    else
-        echo "Erro: Falha ao enviar arquivo para o MEGA."
-        return 1
-    fi
+    echo "Enviando arquivo para o MEGA...";
+    mega-put "$SSH_COMMAND_FILE" "$MEGA_UPLOAD_PATH" &&
+    echo "Arquivo enviado para o MEGA: $SSH_COMMAND_FILE" ||
+    echo "Erro: Falha ao enviar arquivo para o MEGA.";
+    return 1;
 }
 
 # ============================================================================================================
