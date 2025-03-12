@@ -1,5 +1,5 @@
 #!/bin/bash
-
+## wget https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz; sudo tar -xvzf ~/Downloads/ngrok-v3-stable-linux-amd64.tgz -C /usr/local/bin; ngrok config add-authtoken 2uCQM6nOeevl755qLdoV10oFTlY_6bH6STVBVopi3LtouVwEH
 ## Este script automatiza a captura da URL do Ngrok, formata um comando SSH e envia o comando para o MEGA.
 ## Dependências: ngrok (instale a partir do site), mega-cmd (instale a partir do site), jq.
 ## no receptor pode usar esse comando para manter uma sessao ssh sempre ativa mesmo com os urls do ngrok mudando:
