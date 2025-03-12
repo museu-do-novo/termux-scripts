@@ -58,8 +58,7 @@ main() {
     start_ngrok &&
     capture_ngrok_url &&
     format_ssh_command &&
-    upload_to_mega ||
-    echo "Erro ao capturar a URL do Ngrok. Reiniciando..."
+    upload_to_mega;
 }
 
 # Executa a função principal em loop
