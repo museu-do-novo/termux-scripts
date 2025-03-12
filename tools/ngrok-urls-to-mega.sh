@@ -9,14 +9,14 @@
 # ============================================================================================================
 
 # Configurações
-WHOIAM=$(whoami)
-TMPDIR=${TMPDIR:-/tmp}
-COMMAND_OUTPUT="$TMPDIR/ngrok.log"
-SSH_COMMAND_FILE="$TMPDIR/ssh_command.txt"
+WHOIAM=$(whoami)                             # usuario
+TMPDIR=${TMPDIR:-/tmp}                       # evitar divergencia com a variavel do termux para usar no linux      
+COMMAND_OUTPUT="$TMPDIR/ngrok.log"           # arquivo intermediario 
+SSH_COMMAND_FILE="$TMPDIR/ssh_command.txt"   # comando do ssh para o receptor 
 MEGA_UPLOAD_PATH="${MEGA_UPLOAD_PATH:-/}"    # Caminho no MEGA (pode ser sobrescrito por variável de ambiente)
-SSH_USER="$WHOIAM"              # Usuário SSH (pode ser sobrescrito por variável de ambiente)
+USER="$WHOIAM"                               # Usuário SSH (pode ser sobrescrito por variável de ambiente)
 MY_PORT="${MY_PORT:-8022}"                   # Porta SSH local (pode ser sobrescrito por variável de ambiente)
-LOOP_INTERVAL="${LOOP_INTERVAL:-1500}"       # Intervalo entre execuções do loop (em segundos)
+LOOP_INTERVAL="${LOOP_INTERVAL:-69}"         # Intervalo entre execuções do loop (em segundos)
 
 # ============================================================================================================
 # Função para iniciar o Ngrok
@@ -27,6 +27,26 @@ start_ngrok() {
     sleep 5  # Aguarda o Ngrok inicializar
 }
 
+# TEST
+# --------------------------------------------------------------------------------
+VNC_COMMAND_FILE="$TMPDIR/vnc_command.txt"
+
+vnc_ngrok(){
+    pkill ngrok
+    echo "iniciando o vnc pelo ngrok"
+    nohup ngrok tcp 5901 > "$COMMAND_OUTPUT" 2>&1 &
+    sleep 5
+}
+format_vnc_command(){
+    echo "Formatando comando SSH..."
+    host=$(echo "$url" | awk -F'://' '{print $2}' | awk -F':' '{print $1}')
+    port=$(echo "$url" | awk -F':' '{print $NF}')
+    vnc_command="vncviewer $host:$port"
+    echo "$vnc_command" > "$VNC_COMMAND_FILE"
+    echo "Comando VNCVIEWER formatado: $vnc_command"
+}
+# esperando implementacao do vnc
+# --------------------------------------------------------------------------------
 # Função para capturar a URL do Ngrok
 capture_ngrok_url() {
     echo "Capturando URL do Ngrok..."
@@ -43,7 +63,7 @@ format_ssh_command() {
     echo "Formatando comando SSH..."
     host=$(echo "$url" | awk -F'://' '{print $2}' | awk -F':' '{print $1}')
     port=$(echo "$url" | awk -F':' '{print $NF}')
-    ssh_command="ssh $SSH_USER@$host -p $port"
+    ssh_command="ssh $USER@$host -p $port"
     echo "$ssh_command" > "$SSH_COMMAND_FILE"
     echo "Comando SSH formatado: $ssh_command"
 }
