@@ -65,9 +65,9 @@ format_ssh_command() {
     echo "Formatando comando SSH..."
     host=$(echo "$url" | awk -F'://' '{print $2}' | awk -F':' '{print $1}')
     port=$(echo "$url" | awk -F':' '{print $NF}')
-    ssh_command="ssh $USER@$host -p $port"
-    echo "$ssh_command" > "$SSH_COMMAND_FILE"
-    echo "Comando SSH formatado: $ssh_command"
+    SSH_COMMAND="ssh $USER@$host -p $port"
+    echo "$SSH_COMMAND" > "$SSH_COMMAND_FILE"
+    echo "Comando SSH formatado: $SSH_COMMAND"
 }
 
 # Função para formatar o comando VNC
