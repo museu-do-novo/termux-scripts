@@ -18,7 +18,7 @@ TMPDIR=${TMPDIR:-/tmp}                       # Diretório temporário
 COMMAND_OUTPUT="$TMPDIR/ngrok.log"           # Arquivo de log do Ngrok
 MEGA_UPLOAD_PATH="${MEGA_UPLOAD_PATH:-/}"    # Caminho no MEGA (pode ser sobrescrito por variável de ambiente)
 USER="$WHOIAM"                               # Usuário SSH (pode ser sobrescrito por variável de ambiente)
-MY_PORT="${MY_PORT:-8022}"                   # Porta SSH local (pode ser sobrescrito por variável de ambiente)
+SSH_PORT="${SSH_PORT:-8022}"                   # Porta SSH local (pode ser sobrescrito por variável de ambiente)
 LOOP_INTERVAL="${LOOP_INTERVAL:-10}"         # Intervalo entre verificações do Ngrok (em segundos)
 VNC_PORT="${VNC_PORT:-5901}"                 # Porta VNC local (pode ser sobrescrito por variável de ambiente)
 
@@ -103,7 +103,7 @@ check_ngrok() {
 main() {
     clear
     if [ "$MODE" == "ssh" ]; then
-        start_ngrok "$MY_PORT" &&
+        start_ngrok "$SSH_PORT" &&
         capture_ngrok_url &&
         format_ssh_command &&
         upload_to_mega "$SSH_COMMAND_FILE"
