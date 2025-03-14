@@ -18,16 +18,28 @@ TMPDIR=${TMPDIR:-/tmp}                       # Diretório temporário
 COMMAND_OUTPUT="$TMPDIR/ngrok.log"           # Arquivo de log do Ngrok
 MEGA_UPLOAD_PATH="${MEGA_UPLOAD_PATH:-/}"    # Caminho no MEGA (pode ser sobrescrito por variável de ambiente)
 USER="$WHOIAM"                               # Usuário SSH (pode ser sobrescrito por variável de ambiente)
-SSH_PORT="${SSH_PORT:-8022}"                   # Porta SSH local (pode ser sobrescrito por variável de ambiente)
-LOOP_INTERVAL="${LOOP_INTERVAL:-69}"         # Intervalo entre execuções do loop (em segundos)
+MY_PORT="${MY_PORT:-8022}"                   # Porta SSH local (pode ser sobrescrito por variável de ambiente)
+LOOP_INTERVAL="${LOOP_INTERVAL:-10}"         # Intervalo entre verificações do Ngrok (em segundos)
 VNC_PORT="${VNC_PORT:-5901}"                 # Porta VNC local (pode ser sobrescrito por variável de ambiente)
 
-# VARIAVES DE CONTROLE:
+# Variáveis de controle
 MODE="ssh"                                   # Modo padrão (ssh ou vnc)
 SSH_COMMAND_FILE="$TMPDIR/ssh_command.txt"   # Arquivo para o comando SSH
 VNC_COMMAND_FILE="$TMPDIR/vnc_command.txt"   # Arquivo para o comando VNC
 
 # ============================================================================================================
+
+# Função para limpeza ao encerrar o script
+cleanup() {
+    echo "Encerrando o script e limpando recursos..."
+    pkill ngrok                              # Mata o processo do Ngrok
+    rm -f "$SSH_COMMAND_FILE" "$VNC_COMMAND_FILE" "$COMMAND_OUTPUT"  # Remove arquivos temporários
+    echo "Recursos limpos. Script encerrado."
+    exit 0
+}
+
+# Captura sinais de encerramento (SIGINT, SIGTERM, etc.)
+trap cleanup SIGINT SIGTERM
 
 # Função para iniciar o Ngrok
 start_ngrok() {
@@ -77,11 +89,21 @@ upload_to_mega() {
     echo "Erro: Falha ao enviar arquivo para o MEGA."
 }
 
+# Função para verificar se o Ngrok está ativo
+check_ngrok() {
+    if ! curl -s http://localhost:4040/api/tunnels > /dev/null; then
+        echo "Ngrok não está ativo. Reiniciando..."
+        return 1
+    fi
+    echo "Ngrok está ativo."
+    return 0
+}
+
 # Função principal
 main() {
     clear
     if [ "$MODE" == "ssh" ]; then
-        start_ngrok "$SSH_PORT" &&
+        start_ngrok "$MY_PORT" &&
         capture_ngrok_url &&
         format_ssh_command &&
         upload_to_mega "$SSH_COMMAND_FILE"
@@ -108,8 +130,10 @@ else
     exit 1
 fi
 
-# Executa a função principal em loop
+# Loop principal
 while true; do
-    main
+    if ! check_ngrok; then
+        main
+    fi
     sleep "$LOOP_INTERVAL"
 done
