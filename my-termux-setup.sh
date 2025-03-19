@@ -47,7 +47,7 @@ echo_color "cyan" "[*] Instalando pacotes..."
 sleep 2
 
 # Lista de pacotes a serem instalados
-packages=("tmux" "megacmd" "x11-repo" "tesseract" "root-repo" \
+packages=("tmux" "man" "megacmd" "x11-repo" "tesseract" "root-repo" \
 "tur-repo" "python3" "git" "wget" "neovim" "nmap" \
 "netcat-openbsd" "termux-x11-nightly" "termux-api" \
 "android-tools" "termux-tools" "openssh" "htop" "zsh" "nodejs" \
@@ -97,7 +97,28 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-pymuxkali -m
+confirm_step() {
+    local message="$1"
+    echo_color "yellow" "[?] $message (s/n)"
+    read -r response
+    if [[ "$response" =~ ^[sS]$ ]]; then
+        return 0  # Retorna sucesso (sim)
+    else
+        return 1  # Retorna falha (não)
+    fi
+}
+
+if confirm_step "Deseja instalar o Kali Nethunter?"; then
+    echo_color "cyan" "[*] Instalando Kali Nethunter..."
+    pymuxkali -m
+    if [[ $? -ne 0 ]]; then
+        echo_color "red" "[!] Erro ao instalar o Nethunter."
+    else
+        echo_color "green" "[*] Nethunter instalado com sucesso!"
+    fi
+else
+    echo_color "yellow" "[*] Instalação do Nethunter pulada."
+fi
 
 # ------------------------------------------------------------
 # Instalando Oh My Zsh
