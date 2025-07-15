@@ -21,6 +21,7 @@ def get_clean_links(sitemap_url):
     if res.status_code != 200:
         print(f"{Fore.RED}[✘] Erro: Status Code {res.status_code}{Style.RESET_ALL}")
         return []
+        exit(1)
 
     soup = BeautifulSoup(res.text, 'lxml-xml')
     clean_links = []
