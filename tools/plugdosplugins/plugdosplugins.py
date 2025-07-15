@@ -2,18 +2,39 @@ import requests
 from bs4 import BeautifulSoup
 from colorama import init, Fore, Style
 import os
+import sys
+from datetime import datetime
+import re
 
-# Inicializa o colorama (necessário no Windows)
+# Initialize colorama (required on Windows)
 init(autoreset=True)
 
-# Salva listas em arquivos de texto
+# Logger class to mirror console output to a file
+class Logger(object):
+    def __init__(self):
+        self.terminal = sys.stdout
+        self.log = open("console_output.log", "w", encoding='utf-8')
+        
+    def write(self, message):
+        self.terminal.write(message)
+        # Remove color codes for the log file
+        clean_message = re.sub(r'\x1b\[[0-9;]*[mK]', '', message)
+        self.log.write(clean_message)
+        
+    def flush(self):
+        pass
+
+# Redirect stdout to our logger
+sys.stdout = Logger()
+
+# Save lists to text files
 def salvar_em_arquivo(nome_arquivo, lista):
     with open(nome_arquivo, 'w', encoding='utf-8') as f:
         for item in lista:
             f.write(item + '\n')
     print(f"{Fore.GREEN}[✔] Lista salva: {nome_arquivo} ({len(lista)} itens){Style.RESET_ALL}")
 
-# Extrai links válidos de páginas do sitemap
+# Extract clean links from sitemap pages
 def get_clean_links(sitemap_url):
     print(f"{Fore.CYAN}[→] Requisitando sitemap: {sitemap_url}{Style.RESET_ALL}")
     res = requests.get(sitemap_url)
@@ -21,7 +42,6 @@ def get_clean_links(sitemap_url):
     if res.status_code != 200:
         print(f"{Fore.RED}[✘] Erro: Status Code {res.status_code}{Style.RESET_ALL}")
         return []
-        exit(1)
 
     soup = BeautifulSoup(res.text, 'lxml-xml')
     clean_links = []
@@ -31,7 +51,7 @@ def get_clean_links(sitemap_url):
         link = loc.text.strip()
         parte_final = link.split('?')[0].split('#')[0].split('/')[-1]
         
-        # Considera apenas páginas reais (não arquivos)
+        # Only consider actual pages (not files)
         if '.' not in parte_final or link.endswith('/'):
             clean_links.append(link)
 
@@ -39,7 +59,7 @@ def get_clean_links(sitemap_url):
     salvar_em_arquivo("links_limpos.txt", clean_links)
     return clean_links
 
-# Busca por páginas com "/magnet/" em um post
+# Search for pages with "/magnet/" in a post
 def extract_magnet_pages(page_url):
     try:
         res = requests.get(page_url)
@@ -61,7 +81,7 @@ def extract_magnet_pages(page_url):
         print(f"{Fore.RED}[✘] Erro em {page_url}: {str(e)}{Style.RESET_ALL}")
         return []
 
-# Extração do magnet link real de uma página /magnet/
+# Extract real magnet link from a /magnet/ page
 def extract_magnet_link(magnet_page_url):
     try:
         res = requests.get(magnet_page_url)
@@ -78,11 +98,13 @@ def extract_magnet_link(magnet_page_url):
         print(f"{Fore.RED}[✘] Erro ao extrair magnet de {magnet_page_url}: {str(e)}{Style.RESET_ALL}")
         return None
 
-# ======= EXECUÇÃO PRINCIPAL =======
+# ======= MAIN EXECUTION =======
+
+print(f"\n{Fore.YELLOW}[📅] Processo iniciado em: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}{Style.RESET_ALL}")
 
 sitemap_url = "https://plugdosplugins.com/post-sitemap.xml"
 
-# Etapa 1: Extração de links do sitemap
+# Step 1: Extract links from sitemap
 clean_links = get_clean_links(sitemap_url)
 
 print(f"\n{Fore.YELLOW}[🚀] Iniciando varredura de páginas para encontrar magnet links...\n{Style.RESET_ALL}")
@@ -91,13 +113,13 @@ all_magnet_pages = []
 all_magnet_links = []
 magnet_count = 0
 
-# Etapa 2: Para cada link limpo, buscar páginas /magnet/
+# Step 2: For each clean link, search for /magnet/ pages
 for i, page_url in enumerate(clean_links, 1):
     print(f"{Fore.BLUE}[🔄] ({i}/{len(clean_links)}) Página: {page_url}{Style.RESET_ALL}")
     magnet_pages = extract_magnet_pages(page_url)
     all_magnet_pages.extend(magnet_pages)
 
-    # Etapa 3: Para cada página /magnet/, buscar o link magnet real
+    # Step 3: For each /magnet/ page, extract the real magnet link
     for magnet_page in magnet_pages:
         magnet_link = extract_magnet_link(magnet_page)
         if magnet_link:
@@ -105,16 +127,19 @@ for i, page_url in enumerate(clean_links, 1):
             print(f"{Fore.GREEN}    [#{magnet_count:03}] {magnet_link}{Style.RESET_ALL}")
             all_magnet_links.append(magnet_link)
 
-# Etapa 4: Remover duplicatas mantendo a ordem
+# Step 4: Remove duplicates while preserving order
 unique_magnet_pages = list(dict.fromkeys(all_magnet_pages))
 unique_magnet_links = list(dict.fromkeys(all_magnet_links))
 
-# Salvar arquivos com os resultados
+# Save files with results
 salvar_em_arquivo("paginas_magnet.txt", unique_magnet_pages)
 salvar_em_arquivo("magnet_links.txt", unique_magnet_links)
 
-# Resumo final
+# Final summary
 print(f"\n{Fore.MAGENTA}[🏁] Varredura finalizada com sucesso.{Style.RESET_ALL}")
 print(f"{Fore.YELLOW}[📄] Links do sitemap: {len(clean_links)}")
 print(f"[📄] Páginas /magnet/: {len(unique_magnet_pages)}")
 print(f"[📄] Magnet links únicos: {len(unique_magnet_links)}{Style.RESET_ALL}")
+
+# Add final timestamp
+print(f"\n{Fore.YELLOW}[📅] Processo concluído em: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}{Style.RESET_ALL}")
