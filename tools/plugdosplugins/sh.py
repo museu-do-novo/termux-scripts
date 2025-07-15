@@ -174,7 +174,10 @@ def banner(title: str) -> None:
 
 
 # === Core shell utilities ===
-
+def file_exists(filepath: str) -> bool:
+    """Verifica se um arquivo existe no sistema de arquivos."""
+    return os.path.isfile(filepath)
+    
 def pwd():
     """Return current working directory (like 'pwd')"""
     return os.getcwd()
