@@ -6,12 +6,6 @@ import sys
 from datetime import datetime
 import re
 import sh
-sh.clear()
-cleanthis = ["console_output.log", "links_limpos.txt", "magnet_links.txt ", "paginas_magnet.txt"]
-for f in cleanthis:
-    if sh.file_exists(f):
-        sh.rm(str(f.strip()))
-        sh.message(f"arquivo antigo: {f} removido")
 
 # Logger class to mirror console output to a file
 class Logger(object):
@@ -28,8 +22,6 @@ class Logger(object):
     def flush(self):
         pass
 
-# Redirect stdout to our logger
-sys.stdout = Logger()
 
 # Save lists to text files
 def salvar_em_arquivo(nome_arquivo, lista):
@@ -104,48 +96,56 @@ def extract_magnet_link(magnet_page_url):
         return None
 
 # ======= MAIN EXECUTION =======
+if __name__ == "__main__":
+    # Redirect stdout to our logger
+    sys.stdout = Logger()
+    sh.clear()
+    cleanthis = ["console_output.log", "links_limpos.txt", "magnet_links.txt ", "paginas_magnet.txt"]
+    for f in cleanthis:
+        if sh.file_exists(f):
+            sh.rm(str(f.strip()))
+            # sh.message(f"arquivo antigo: {f} removido")
 
-sh.message(f"\n[📅] Processo iniciado em: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", level='info')
+    sitemap_url = "https://plugdosplugins.com/post-sitemap.xml"
 
-sitemap_url = "https://plugdosplugins.com/post-sitemap.xml"
+    # Step 1: Extract links from sitemap
+    sh.message(f"\n[📅] Processo iniciado em: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", level='info')
+    clean_links = get_clean_links(sitemap_url)
 
-# Step 1: Extract links from sitemap
-clean_links = get_clean_links(sitemap_url)
+    sh.message(f"\n[🚀] Iniciando varredura de páginas para encontrar magnet links...\n", level='info')
 
-sh.message(f"\n[🚀] Iniciando varredura de páginas para encontrar magnet links...\n", level='info')
-
-all_magnet_pages = []
-all_magnet_links = []
-magnet_count = 0
+    all_magnet_pages = []
+    all_magnet_links = []
+    magnet_count = 0
 
 
-# Step 2: For each clean link, search for /magnet/ pages
-for i, page_url in enumerate(clean_links, 1):
-    sh.message(f"[🔄] ({i}/{len(clean_links)}) Página: {page_url}",level='debug')
-    magnet_pages = extract_magnet_pages(page_url)
-    all_magnet_pages.extend(magnet_pages)
+    # Step 2: For each clean link, search for /magnet/ pages
+    for i, page_url in enumerate(clean_links, 1):
+        sh.message(f"[🔄] ({i}/{len(clean_links)}) Página: {page_url}",level='debug')
+        magnet_pages = extract_magnet_pages(page_url)
+        all_magnet_pages.extend(magnet_pages)
 
-    # Step 3: For each /magnet/ page, extract the real magnet link
-    for magnet_page in magnet_pages:
-        magnet_link = extract_magnet_link(magnet_page)
-        if magnet_link:
-            magnet_count += 1
-            sh.message(f"    [#{magnet_count:03}] {magnet_link}", custom_color='green')
-            all_magnet_links.append(magnet_link)
+        # Step 3: For each /magnet/ page, extract the real magnet link
+        for magnet_page in magnet_pages:
+            magnet_link = extract_magnet_link(magnet_page)
+            if magnet_link:
+                magnet_count += 1
+                sh.message(f"    [#{magnet_count:03}] {magnet_link}", custom_color='green')
+                all_magnet_links.append(magnet_link)
 
-# Step 4: Remove duplicates while preserving order
-unique_magnet_pages = list(dict.fromkeys(all_magnet_pages))
-unique_magnet_links = list(dict.fromkeys(all_magnet_links))
+    # Step 4: Remove duplicates while preserving order
+    unique_magnet_pages = list(dict.fromkeys(all_magnet_pages))
+    unique_magnet_links = list(dict.fromkeys(all_magnet_links))
 
-# Save files with results
-salvar_em_arquivo("paginas_magnet.txt", unique_magnet_pages)
-salvar_em_arquivo("magnet_links.txt", unique_magnet_links)
+    # Save files with results
+    salvar_em_arquivo("paginas_magnet.txt", unique_magnet_pages)
+    salvar_em_arquivo("magnet_links.txt", unique_magnet_links)
 
-# Final summary
-sh.message(f"}[🏁] Varredura finalizada com sucesso.", custom_color='green')
-sh.message(f"[📄] Links do sitemap: {len(clean_links)}")
-sh.message(f"[📄] Páginas /magnet/: {len(unique_magnet_pages)}")
-sh.message(f"[📄] Magnet links únicos: {len(unique_magnet_links)")
+    # Final summary
+    sh.message(f"[🏁] Varredura finalizada com sucesso.", custom_color='green')
+    sh.message(f"[📄] Links do sitemap: {len(clean_links)}")
+    sh.message(f"[📄] Páginas /magnet/: {len(unique_magnet_pages)}")
+    sh.message(f"[📄] Magnet links únicos: {len(unique_magnet_links)}")
 
-# Add final timestamp
-sh.message(f"[📅] Processo concluído em: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    # Add final timestamp
+    sh.message(f"[📅] Processo concluído em: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
