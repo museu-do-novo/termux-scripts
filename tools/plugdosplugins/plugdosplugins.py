@@ -95,16 +95,22 @@ def extract_magnet_link(magnet_page_url):
         sh.message(f"[✘] Erro ao extrair magnet de {magnet_page_url}: {str(e)}", custom_color='red')
         return None
 
-# ======= MAIN EXECUTION =======
-if __name__ == "__main__":
-    # Redirect stdout to our logger
-    sys.stdout = Logger()
-    sh.clear()
+def cleanup():
     cleanthis = ["console_output.log", "links_limpos.txt", "magnet_links.txt ", "paginas_magnet.txt"]
     for f in cleanthis:
         if sh.file_exists(f):
             sh.rm(str(f.strip()))
             # sh.message(f"arquivo antigo: {f} removido")
+
+
+# ======= MAIN EXECUTION =======
+if __name__ == "__main__":
+    # Redirect stdout to our logger
+    sys.stdout = Logger()
+    cleanup()
+    sh.clear()
+    sh.banner("*** P L U G  D O S  P L U G I N S ***")
+
 
     sitemap_url = "https://plugdosplugins.com/post-sitemap.xml"
 
